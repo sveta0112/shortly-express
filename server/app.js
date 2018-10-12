@@ -18,28 +18,27 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 
 app.get('/', 
-(req, res) => {
-  res.render('index');
-});
+  (req, res) => {
+    res.render('index');
+  });
 
 app.get('/create', 
-(req, res) => {
-  res.render('index');
-});
+  (req, res) => {
+    res.render('index');
+  });
 
 app.get('/links', 
-(req, res, next) => {
-  models.Links.getAll()
-    .then(links => {
-      res.status(200).send(links);
-    })
-    .error(error => {
-      res.status(500).send(error);
-    });
-});
+  (req, res, next) => {
+    models.Links.getAll()
+      .then(links => {
+        res.status(200).send(links);
+      })
+      .error(error => {
+        res.status(500).send(error);
+      });
+  });
 
-app.post('/links', 
-(req, res, next) => {
+app.post('/links', (req, res, next) => {
   var url = req.body.url;
   if (!models.Links.isValidUrl(url)) {
     // send back a 404 if link is not valid
@@ -77,6 +76,56 @@ app.post('/links',
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
+app.get('/login', (req, res) => {
+  res.render('login.ejs');
+});
+app.get('/signup', (req, res) => {
+  res.render('signup.ejs');
+});
+
+app.post('/signup', (req, res, next) => {
+  // Check if the user exists, if it does not 
+  // go ahead and create a new user record
+  // and then redirect to index or sign up page
+  
+  models.Users.get({
+    username: req.body.username
+  }).then(user => {
+    if (user) {
+      throw false; // User exists
+    }
+  
+    return models.Users.create(req.body);
+  }).then( id => {
+    throw true;
+  }).catch(result => {
+    if (result) {
+      res.redirect('/');
+    } else {
+      res.redirect('/signup');
+    }
+  });
+});
+
+app.post('/login', (req, res, next) => {
+  //check if user exists
+  // check password
+  // redirect to index or login page
+  models.Users.get({
+    username: req.body.username
+  }).then(user => {
+    if (!user) {
+      throw false;
+    } 
+    throw models.Users.compare(req.body.password, user.password, user.salt);
+  }).catch(result => {
+    if (result) {
+      res.redirect('/');//index?
+    } else {
+      res.redirect('/login');
+    }
+  });
+});
 
 
 
