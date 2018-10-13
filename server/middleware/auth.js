@@ -2,6 +2,7 @@ const models = require('../models');
 const Promise = require('bluebird');
 
 // Helper function to create a new session and to set the request and response.
+// TODO: Associate a userID IF the user is logged in, depending on the current endpoint.
 var newSessionPromise = function(req, res, next) {
   return models.Sessions.create() //create session
     .then(result => {
@@ -12,8 +13,9 @@ var newSessionPromise = function(req, res, next) {
     .then(session => {
       var hash = session.hash;
       req.cookies['shortlyid'] = {value: hash};
-      res.cookies = req.cookies; // Shallow copy, if bugs occur, copy the cookies object
       req.session = {hash};
+      res.cookies = req.cookies; // Shallow copy, if bugs occur, copy the cookies object
+      res.cookie('shortlyid', hash); // Also call res.cookie() so that the cookies may be found
       next();
     });
 };
