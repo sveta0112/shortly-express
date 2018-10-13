@@ -98,6 +98,9 @@ app.post('/signup', (req, res, next) => {
   
     return models.Users.create(req.body);
   }).then( id => {
+    var tempReq = req;
+    var tempRes = res;
+    // TODO: We can get the session hash here, we want to assign the new user ID to this session right here.
     throw true;
   }).catch(result => {
     if (result) {
